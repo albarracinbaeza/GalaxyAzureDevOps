@@ -1,0 +1,7 @@
+https://docs.microsoft.com/en-us/azure/devops/boards/queries/link-work-items-support-traceability?view=azure-devops&tabs=new-web-form
+
+https://docs.microsoft.com/en-us/azure/devops/notifications/add-links-to-work-items?view=azure-devops
+
+https://docs.microsoft.com/en-us/azure/devops/repos/git/resolution-mentions?view=azure-devops
+
+https://stackoverflow.com/questions/54577475/azuredevops-link-git-commit-or-branch-to-work-item-via-command-line

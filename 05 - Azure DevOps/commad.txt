@@ -1,0 +1,21 @@
+get-childitem -path env:*
+replace token
+Replace tokens in **/*._layout
+__Buid.BuildNumber__
+
+
+Variable
+Multiplier    :   1,2,3
+
+
+ingresar a Appservice
+agregar un webapp - windows y elegir automation option, y descargar la plantilla
+copiar a repo (Provisioning/webapp)
+	- template.json
+	- paraneters.json
+	- deploy.ps1
+	
+	
+agregar una tarea "Copy Files"
+soruce folder : "Ruta de provisioning"
+Target folder : "$(build.artifactstagingdirectory)"
