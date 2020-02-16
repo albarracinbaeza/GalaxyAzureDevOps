@@ -1,0 +1,107 @@
+4jag2aqndyuihdr3nru64bnhx6fvelwb3sty3m5azr5lab6opiuq
+
+En azure Portal crear un GR llamado "AzureDevOps" en Centra US.
+
+Actualizar DemoRepo
+
+Cambiar argumentos de MSBuild
+----------------------------------------------------------------------------------------------------------------
+/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactstagingdirectory)\\"
+
+Generar nuevo Pipe Release (Azure App Service deployment)
+Stage : InitialTest
+
+Agregar suscripcion a travez de service connection
+App type : Windows
+App service name : AppDeliveryErick
+StartUp Command : dotnet Microservices.SOA.Client.dll
+Agregar tarea : Azure Resource Group Deployment (Debe ser la primera tarea)
+Seleccionar suscripcion 
+Seleccionar RG : AzureDevOps
+Location : Centar US
+
+Ir a Azure Portal
+New app Service
+RG: AzureDevOps
+Name: AppDeliveryErick
+Stack: 3.0
+Region : Central US
+SKU : Free F1
+Review + Create
+Download template
+Click en download
+Copiar los archivos parameters y template a Provisioning\webapp
+subir los cambios al repo
+
+modificar destino de Copy : $(build.artifactstagingdirectory)\Provisioning
+generar compilacion nueva
+
+En Pipe Line add artifact
+Selecionar Build pipeline
+source : drop
+Click en Add
+
+Ir a la tarea de RG
+Seleccionar Template.json de la ruta  de provisioning
+Seleccionar Parameters.json de la ruta  de provisioning, 
+Revisar parametros en override
+
+Grabar
+
+
+Agregar KUbernets
+
+Click derecho en el proyecto escoger add -> soporte de contendores -> Docker Compose -> Windows
+Copiar docker compose y renombrar "docker-deploy.yml"
+
+Azure Portal
+Container registries
+Nuevo registrie
+Name : psreleasedemoerick
+enable admin user
+ingresar al registrie -> Access Key -> copy Login server : psreleasedemoerick.azurecr.io, reemplazar en conainers , image de docker-deploy
+Probar composer, run docker compose
+
+Crear nuevo pipeline de compilacion basado en ASP.NET with containers
+seleccionar suscripcion
+seleccionar registrie
+En copi file agregar docker-deploy.yml
+
+generar nuevo pipeline de despliegue basa en deploy to a kubernetes cluster
+Stage : DeployToKubernetes
+
+create AKS
+Cluster name : WinAKS
+Central US
+
+agregar nodos tipo windowa
+az feature register --name WindowsPreview --namespace Microsoft.ContainerService
+az provider register --namespace Microsoft.ContainerService
+az aks create --resource-group AzureDevOps --name WinAKS --node-count 1 --enable-addons monitoring --kubernetes-version 1.15.7 --generate-ssh-keys --windows-admin-password P@$$word123 --windows-admin-username azureuser --vm-set-type VirtualMachineScaleSets --load-balancer-sku standard --network-plugin azure
+
+seleccionar la conexion creada
+namespace : default
+command : apply
+Configuration file : docker-deploy
+
+agrgar una tarea para sobreescribir el archivo yml
+en la tarea de Kubernete  en Secret name : regsecret
+rutear el registrie
+
+az aks install-cli
+az aks get-credentials --resource-group AzureDevOps --name WinAKS
+kubectl create clusterrolebinding kubernetes-dashboard -n kube-system --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+kubectl proxy
+az aks browse --resource-group AzureDevOps --name WinAKS
+
+
+
+Create YML Pipeline
+
+New enviroment :production - Kubernetes
+New pipeline build yml , source git -> Deploy to Azure Kubernetes Service 
+ImageName : microservicessoaclient
+editar ultima tarea eliminarla e insertar una nueva de kubernetes
+arguments : -f $(System.ArtifactsDirectory)\drop\docker-deploy.yml
+secret name : regsecret
+
